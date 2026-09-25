@@ -13,21 +13,31 @@ const planned = decide(spec.entries, spec.hot_threshold, spec.capacity);
 const done = run(planned, spec.done_moves || [], spec.reads || []);
 const view = render(spec);
 
-emit("每份数据所在层 =", JSON.stringify(planned.plan));
-emit("迁移清单 =", JSON.stringify(planned.moves));
-emit("本次执行的迁移 =", JSON.stringify(done.applied));
+emit("每份数据所在层 =", planned.plan);
+emit("迁移清单 =", planned.moves);
+emit("本次执行的迁移 =", done.applied);
 emit("重复跳过的迁移 =", done.skipped);
-emit("迁移中的读结果 =", JSON.stringify(done.results));
+emit("迁移中的读结果 =", done.results);
 emit("读是否一致 =", view.consistent);
 emit("热层容量 =", spec.capacity);
 
 
-// ---- 异常路径探针：真调用实现，看它报出什么码（不是从样例里抄）----
+// ---- 异常路径探针：真调用实现，容量真的不够时必须抛出 E_TIER_FULL（不是从样例里抄）----
+let __probeBad = 0;
 try {
-  const bad = decide([{ id: "d0", hits: 1 }, { id: "d1", hits: 2 }], 9, 0);
-  emit("热层容量不足的错误码", bad.moves.length ? (bad.code || "E_TIER_FULL") : "no-error");
+  run({ moves: ["p0:hot", "p1:hot"], capacity: 1 }, [], []);
+  emit("热层容量不足的错误码", "no-error");
+  __probeBad += 1;
+  console.log("不一致 热层容量不足的错误码 期望 E_TIER_FULL 实际 未报错（不得静默硬塞）");
 } catch (error) {
-  emit("热层容量不足的错误码", error.code || error.message);
+  const code = error.code || error.message;
+  emit("热层容量不足的错误码", code);
+  if (code !== "E_TIER_FULL") {
+    __probeBad += 1;
+    console.log("不一致 热层容量不足的错误码 期望 E_TIER_FULL 实际 " + code);
+  } else {
+    console.log("一致 热层容量不足的错误码 = E_TIER_FULL");
+  }
 }
 
 
@@ -85,4 +95,4 @@ for (const [label, want] of Object.entries(EXPECTED)) {
   else { __bad += 1; console.log("不一致 " + label + " 期望 " + JSON.stringify(want) + " 实际 " + JSON.stringify(got)); }
 }
 console.log("验收项 " + (Object.keys(EXPECTED).length - __bad) + "/" + Object.keys(EXPECTED).length + " 通过");
-process.exit(__bad === 0 ? 0 : 1);
+process.exit(__bad === 0 && __probeBad === 0 ? 0 : 1);
