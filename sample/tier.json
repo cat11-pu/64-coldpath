@@ -1,0 +1,17 @@
+{
+  "tier_full_code": "E_TIER_FULL",
+  "hot_threshold": 5,
+  "capacity": 2,
+  "done_moves": ["d3:cold"],
+  "entries": [
+    {"id": "d0", "hits": 9},
+    {"id": "d1", "hits": 7},
+    {"id": "d2", "hits": 6},
+    {"id": "d3", "hits": 1},
+    {"id": "d4", "hits": 0}
+  ],
+  "reads": [
+    {"id": "d2", "during": true},
+    {"id": "d3", "during": true}
+  ]
+}
