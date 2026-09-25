@@ -13,11 +13,11 @@ const planned = decide(spec.entries, spec.hot_threshold, spec.capacity);
 const done = run(planned, spec.done_moves || [], spec.reads || []);
 const view = render(spec);
 
-emit("每份数据所在层 =", JSON.stringify(planned.plan));
-emit("迁移清单 =", JSON.stringify(planned.moves));
-emit("本次执行的迁移 =", JSON.stringify(done.applied));
+emit("每份数据所在层 =", planned.plan);
+emit("迁移清单 =", planned.moves);
+emit("本次执行的迁移 =", done.applied);
 emit("重复跳过的迁移 =", done.skipped);
-emit("迁移中的读结果 =", JSON.stringify(done.results));
+emit("迁移中的读结果 =", done.results);
 emit("读是否一致 =", view.consistent);
 emit("热层容量 =", spec.capacity);
 
